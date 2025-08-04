@@ -14,8 +14,8 @@ def set_alarm():
             while True:
                 current_time = datetime.now().strftime("%H:%M")
                 if current_time == alarm_time:
+                    subprocess.run(["mpg123", "alarm_clock.mp3"])  # For Linux
                     messagebox.showinfo("Alarm", "Wake Up!")
-                    subprocess.run(["mpg123", "alarm.mp3"])  # For Linux
                     break
                 time.sleep(1)
         except:
