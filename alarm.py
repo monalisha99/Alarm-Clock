@@ -5,13 +5,18 @@ import time
 import threading
 import subprocess
 
+
+running = False
+alarm_thread = None
+
 def set_alarm():
+    global running, alarm_thread
     alarm_time = entry_time.get()
     label.config(text=f"Alarm set for {alarm_time}")
     
     def alarm():
         try:
-            while True:
+            while running:
                 current_time = datetime.now().strftime("%H:%M")
                 if current_time == alarm_time:
                     subprocess.run(["mpg123", "alarm_clock.mp3"])  # For Linux
@@ -21,7 +26,19 @@ def set_alarm():
         except:
             messagebox.showerror("Error", "Something is wrong!")
 
-    threading.Thread(target=alarm).start() 
+    alarm_thread = threading.Thread(target=alarm)
+    alarm_thread.start()
+
+
+
+def off_alarm():
+    global running
+    running = False
+    label.config(text="Alarm Stopped")
+    subprocess.run(["pkill", "mpg123"])    # works on linux to kill music
+
+
+
 
 # Tkinter GUI
 root = tk.Tk()
@@ -38,7 +55,7 @@ entry_time.pack(pady=10)
 frame = tk.Frame(root)
 frame.pack(pady=5)
 
-play_button = tk.Button(root, 
+on_button = tk.Button(root, 
                         text="Play", 
                         font=("Arial", 16), 
                         fg="black", 
@@ -46,7 +63,7 @@ play_button = tk.Button(root,
                         activebackground="blue", 
                         activeforeground="white", 
                         command=set_alarm)
-play_button.pack(pady=10)
+on_button.pack(pady=10)
 
 off_button = tk.Button(root, 
                        text="Off", 
@@ -54,7 +71,8 @@ off_button = tk.Button(root,
                        bg="lightgray", 
                        fg="white", 
                        activebackground="gray", 
-                       activeforeground="red")
+                       activeforeground="red", 
+                       command=off_alarm)
 off_button.pack(pady=10)
 
 root.mainloop()
