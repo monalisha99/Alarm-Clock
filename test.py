@@ -1,31 +1,62 @@
-
-
 import tkinter as tk
+from tkinter import messagebox
 from datetime import datetime
-
-def update_clock():
-    current_time = datetime.now().strftime("%I:%M:%S %p")  # 12-hour format with AM/PM
-    current_day = datetime.now().strftime("%A")            # Full weekday name
-
-    clock_label.config(text=current_time)
-    day_label.config(text=current_day)
-
-    root.after(1000, update_clock)  # update every second
+import threading
+import time
 
 root = tk.Tk()
-root.title("Live Clock with Day")
-root.geometry("350x200")
-root.configure(bg="black")
+root.title("Weekday Alarm Clock")
+root.geometry("400x400")
 
-# Day label (e.g., Monday)
-day_label = tk.Label(root, font=("Arial", 20), fg="lightgreen", bg="black")
-day_label.pack(pady=10)
+# ==== Entry for alarm time ====
+tk.Label(root, text="Set Alarm Time (HH:MM)").pack(pady=5)
+entry_time = tk.Entry(root, font=("Arial", 16), justify="center")
+entry_time.insert(0, "07:00")
+entry_time.pack(pady=5)
 
-# Time label (e.g., 11:34:56 AM)
-clock_label = tk.Label(root, font=("Arial", 36), fg="cyan", bg="black")
+# ==== Checkboxes for days ====
+days_selected = {}  # Dictionary to store each day's BooleanVar
+
+tk.Label(root, text="Select Day(s) for Alarm:").pack(pady=5)
+
+days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+for day in days:
+    var = tk.BooleanVar()
+    chk = tk.Checkbutton(root, text=day, variable=var)
+    chk.pack(anchor='w', padx=20)
+    days_selected[day] = var
+
+# ==== Alarm checking logic ====
+def alarm_check():
+    while True:
+        now = datetime.now()
+        current_time = now.strftime("%H:%M")
+        current_day = now.strftime("%A")
+        
+        if current_time == entry_time.get() and days_selected[current_day].get():
+            messagebox.showinfo("Alarm", f"⏰ Alarm for {current_day} at {current_time}!")
+            time.sleep(60)  # Wait 60s so it doesn't repeat within the same minute
+        time.sleep(1)
+
+def start_alarm_thread():
+    t = threading.Thread(target=alarm_check)
+    t.daemon = True
+    t.start()
+
+start_alarm_thread()
+
+# ==== Display current time and day ====
+clock_label = tk.Label(root, font=("Arial", 20))
 clock_label.pack(pady=10)
+
+day_label = tk.Label(root, font=("Arial", 14))
+day_label.pack()
+
+def update_clock():
+    now = datetime.now()
+    clock_label.config(text=now.strftime("%I:%M:%S %p"))
+    day_label.config(text=now.strftime("%A"))
+    root.after(1000, update_clock)
 
 update_clock()
 root.mainloop()
-
-
